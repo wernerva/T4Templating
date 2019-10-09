@@ -1,0 +1,75 @@
+<#@ import namespace="System" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#+
+public class ClassBuilder
+{
+    /// <summary>
+    /// Creates an interface from an XML node
+    /// </summary>
+    /// <param name="node">The XML Node to use</param>
+    /// <param name="namespaceName">The namespace for the generated interface</param>
+    /// <returns>A KeyValuePair where the key is the interface name and the code is the value</returns>
+    public KeyValuePair<string, string> CreateInterface(XmlNode node, string namespaceName)
+    {
+        string interfaceName = "I" + ToPascalCase(node.LocalName);
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine(string.Format("namespace {0}", namespaceName));
+        sb.AppendLine("{");
+        sb.AppendLine(string.Format("{0} public interface {1}", GetIndent(1), interfaceName));
+        sb.AppendLine(string.Format("{0} {{", GetIndent(1)));
+        sb.AppendLine(string.Format("{0} }}", GetIndent(1)));
+        sb.AppendLine("}");
+
+        return new KeyValuePair<string, string>(interfaceName, sb.ToString());
+    }
+
+    /// <summary>
+    /// Creates a class from an XML node
+    /// </summary>
+    /// <param name="node">The XML Node to use</param>
+    /// <param name="namespaceName">The namespace for the generated class</param>
+    /// <param name="interfaceNames">Any interfaces that needs to be implemented</param>
+    /// <returns>A KeyValuePair where the key is the class name and the code is the value</returns>
+    public KeyValuePair<string, string> CreateClass(XmlNode node, string namespaceName, params string[] interfaceNames)
+    {
+        string className = ToPascalCase(node.LocalName);
+        string interfaces = "";
+        StringBuilder sb = new StringBuilder();
+
+        if (interfaceNames != null && interfaceNames.Length > 0)
+        {
+            interfaces = ": " + string.Join(", ", interfaceNames);
+        }
+
+        sb.AppendLine(string.Format("namespace {0}", namespaceName));
+        sb.AppendLine("{");
+        sb.AppendLine(string.Format("{0} public class {1}{2}", GetIndent(1), className, interfaces));
+        sb.AppendLine(string.Format("{0} {{", GetIndent(1)));
+        sb.AppendLine(string.Format("{0} }}", GetIndent(1)));
+        sb.AppendLine("}");
+
+        return new KeyValuePair<string, string>(className, sb.ToString());
+    }
+
+    private string ToPascalCase(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        var chars = input.ToCharArray();
+
+        chars[0] = chars[0].ToString().ToUpper().ToCharArray()[0];
+
+        return new string(chars);
+    }
+
+    private string GetIndent(int level)
+    {
+        return (level < 1) ? "" : new string(' ', 4 * level);
+    }
+}
+#>

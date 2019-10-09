@@ -1,0 +1,38 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly Name="System.Xml" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>	
+<#@ import namespace="System.Xml" #>
+<#@ output extension="/" #>
+<#@ include file="TemplateFileManagerV2.1.ttinclude" #>
+<#@ include file="ClassBuilder.ttinclude" #>
+
+<#
+var manager = TemplateFileManager.Create(this);
+var classBuilder = new ClassBuilder();
+string sourceFile = Path.GetDirectoryName(Host.TemplateFile) + "/source.xml";
+string namespc = "MyClassLibs";
+
+XmlDocument sourceDoc = new XmlDocument();
+sourceDoc.Load(sourceFile);
+XmlNode rootNode = sourceDoc.DocumentElement;
+
+foreach(XmlNode node in rootNode.ChildNodes) {
+	KeyValuePair<string, string> interf = classBuilder.CreateInterface(node, namespc);
+    
+	manager.StartNewFile(interf.Key + ".cs");
+	WriteLine(interf.Value);
+
+	KeyValuePair<string, string> clss = classBuilder.CreateClass(node, namespc, interf.Key); 
+    
+	manager.StartNewFile(clss.Key + ".cs");
+	WriteLine(clss.Value);
+
+}
+
+manager.Process();
+#>
+
